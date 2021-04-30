@@ -1,20 +1,28 @@
 const warungModel = require("../models/warung.model");
 const status = require("../helpers/response.helper");
-const { APP_URL } = process.env;
+const { APP_URL, FILE_URL } = process.env;
 const qs = require("querystring");
 
 exports.createWarung = async (req, res) => {
   try {
     const data = req.body;
     const warungData = {
-      nama_warung: data.nama_warung,
+      ...data,
       picture: req.file.filename || null,
+      id_pemilik: req.userData.id,
     };
-    const results = await warungModel.createWarung(warungData);
-    if (results.affectedRows > 0) {
-      return status.ResponseStatus(res, 200, "Warung successfully created");
+    const existingWarung = await warungModel.getWarungByCondition({
+      nama_warung: data.nama_warung,
+    });
+    if (existingWarung.length < 1) {
+      const results = await warungModel.createWarung(warungData);
+      if (results.affectedRows > 0) {
+        return status.ResponseStatus(res, 200, "Warung successfully created");
+      } else {
+        return status.ResponseStatus(res, 400, "Failed to create Warung");
+      }
     } else {
-      return status.ResponseStatus(res, 400, "Failed to create Warung");
+      return status.ResponseStatus(res, 401, "Warung is existing");
     }
   } catch (err) {
     return status.ResponseStatus(res, 400, err.message);
@@ -57,14 +65,20 @@ exports.listWarungs = async (req, res) => {
       : null;
   pageInfo.prevLink =
     cond.page > 1 ? APP_URL.concat(`warung?${prevQuery}`) : null;
-
   const results = await warungModel.getWarungsByCondition(cond);
+  const modified = results.map((item) => ({
+    ...item,
+    picture:
+      item.picture === null
+        ? item.picture
+        : FILE_URL.concat(`warung/${item.picture}`),
+  }));
   if (results) {
     return status.ResponseStatus(
       res,
       200,
       "List of all Warungs",
-      results,
+      modified,
       pageInfo
     );
   }

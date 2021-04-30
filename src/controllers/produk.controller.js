@@ -1,13 +1,16 @@
 const produkModel = require("../models/produk.model");
+const warungModel = require("../models/warung.model");
 const status = require("../helpers/response.helper");
-const { APP_URL } = process.env;
+const { APP_URL, FILE_URL } = process.env;
 const qs = require("querystring");
 
 exports.createProduk = async (req, res) => {
   try {
     const data = req.body;
+    const initialResult = await warungModel.getOwner(req.userData.id);
     const produkData = {
-      nama_produk: data.nama_produk,
+      ...data,
+      id_warung: initialResult[0].id,
       picture: req.file.filename || null,
     };
     const results = await produkModel.createProduk(produkData);
@@ -57,14 +60,20 @@ exports.listProduks = async (req, res) => {
       : null;
   pageInfo.prevLink =
     cond.page > 1 ? APP_URL.concat(`produk?${prevQuery}`) : null;
-
   const results = await produkModel.getProduksByCondition(cond);
+  const modified = results.map((item) => ({
+    ...item,
+    picture:
+      item.picture === null
+        ? item.picture
+        : FILE_URL.concat(`produk/${item.picture}`),
+  }));
   if (results) {
     return status.ResponseStatus(
       res,
       200,
       "List of all Produks",
-      results,
+      modified,
       pageInfo
     );
   }

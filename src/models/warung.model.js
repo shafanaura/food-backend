@@ -93,3 +93,32 @@ exports.checkWarung = (data = []) => {
     );
   });
 };
+
+exports.getWarungByCondition = (cond) => {
+  return new Promise((resolve, reject) => {
+    const query = dbConn.query(
+      `SELECT * FROM ${table} WHERE ${Object.keys(cond)
+        .map((item) => `${item}="${cond[item]}"`)
+        .join(" AND ")}`,
+      (err, res, field) => {
+        if (err) reject(err);
+        resolve(res);
+      }
+    );
+    console.log(query.sql);
+  });
+};
+
+exports.getOwner = async (id) => {
+  return new Promise((resolve, reject) => {
+    dbConn.query(
+      `
+    SELECT id FROM ${table} WHERE id_pemilik=${id}
+    `,
+      (err, res, field) => {
+        if (err) reject(err);
+        resolve(res);
+      }
+    );
+  });
+};
