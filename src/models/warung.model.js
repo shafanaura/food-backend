@@ -37,10 +37,9 @@ exports.getWarungsCountByCondition = (cond) => {
 exports.getWarungsByCondition = (cond) => {
   return new Promise((resolve, reject) => {
     dbConn.query(
-      `SELECT * FROM ${table} m
-			WHERE m.nama_warung LIKE "%${cond.search}%"
-			ORDER BY ${cond.sort} ${cond.order} 
-			LIMIT ${cond.dataLimit} OFFSET ${cond.offset}`,
+      `SELECT w.*, user.nama as nama_pemilik FROM ${table} w
+      INNER JOIN user ON user.id = w.id_pemilik
+			WHERE w.nama_warung LIKE "%${cond.search}%"`,
       (err, res, field) => {
         if (err) reject(err);
         resolve(res);

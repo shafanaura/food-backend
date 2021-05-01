@@ -46,10 +46,10 @@ exports.deleteMovieById = (id) => {
 exports.getProduksByCondition = (cond) => {
   return new Promise((resolve, reject) => {
     dbConn.query(
-      `SELECT * FROM ${table} m
-			WHERE m.nama_produk LIKE "%${cond.search}%"
-			ORDER BY ${cond.sort} ${cond.order} 
-			LIMIT ${cond.dataLimit} OFFSET ${cond.offset}`,
+      `SELECT p.nama_produk, p.picture, w.nama_warung, w.status 
+      FROM ${table} p
+      INNER JOIN warung w ON w.id = p.id_warung
+      WHERE p.nama_produk LIKE "%${cond.search}%"`,
       (err, res, field) => {
         if (err) reject(err);
         resolve(res);

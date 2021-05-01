@@ -33,13 +33,14 @@ exports.login = async (req, res) => {
 
 exports.register = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, nama } = req.body;
     this.checkValidation(req, res);
     const isExist = await userModel.getUsersByCondition({ email });
     if (isExist.length < 1) {
       const salt = await bcrypt.genSalt();
       const encryptedPassword = await bcrypt.hash(password, salt);
       const createUser = await userModel.createUser({
+        nama,
         email,
         password: encryptedPassword,
       });
